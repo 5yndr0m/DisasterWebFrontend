@@ -46,9 +46,12 @@ import { ChangePassword } from "@/components/common/ChangePassword";
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL;
 
-const getUserProfile = async (userId) => {
+const getUserProfile = async () => {
   try {
+    console.log('Fetching profile from:', `${API_BASE_URL}/users/me`);
+    
     const response = await fetch(`${API_BASE_URL}/users/me`, {
+      method: 'GET',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -56,23 +59,20 @@ const getUserProfile = async (userId) => {
       },
     });
 
-    // First check if response is ok
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
       throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
     }
 
-    // Then try to parse the response
     const data = await response.json();
     return data;
-    
   } catch (error) {
     console.error("getUserProfile error:", error);
     throw error;
   }
 };
 
-const updateUser = async (userId, userData) => {
+const updateUser = async (userData) => {
   try {
     const response = await fetch(`${API_BASE_URL}/users/me`, {
       method: "PATCH",
@@ -83,7 +83,7 @@ const updateUser = async (userId, userData) => {
       body: JSON.stringify(userData),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error);
+    if (!response.ok) throw new Error(data.message || data.error);
     return data;
   } catch (error) {
     throw new Error(error.message || "Failed to update user");
@@ -117,7 +117,7 @@ const updateUserPreferences = async (preferences) => {
       body: JSON.stringify({ preferences }),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error);
+    if (!response.ok) throw new Error(data.message || data.error);
     return data;
   } catch (error) {
     throw new Error(error.message || "Failed to update preferences");
@@ -240,58 +240,26 @@ export default function Profile() {
   };
 
   const handleAvatarChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
     try {
-      setLoading(true);
+      const file = e.target.files[0];
+      if (!file) return;
+  
       const formData = new FormData();
       formData.append('avatar', file);
-
-      const storedUser = localStorage.getItem("user");
-      if (!storedUser) {
-        throw new Error("User data not found");
-      }
-
-      const parsedUser = JSON.parse(storedUser);
-      const userId = parsedUser.id;
-
-      if (!userId) {
-        throw new Error("User ID not found");
-      }
-
-      const response = await fetch(`${API_BASE_URL}/users/${userId}/avatar`, {
+  
+      const response = await fetch(`${API_BASE_URL}/users/me/avatar`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: formData,
       });
-
+  
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-
-      if (data.success) {
-        setUser(prev => ({
-          ...prev,
-          avatar: data.user.avatar,
-        }));
-        setAvatar(data.user.avatar);
-        toast({
-          title: "Avatar updated",
-          description: "Your profile picture has been successfully updated.",
-        });
-      } else {
-        throw new Error(data.message || "Failed to update avatar");
-      }
+      if (!response.ok) throw new Error(data.message || data.error);
+      return data;
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to update avatar. Please try again.",
-      });
-    } finally {
-      setLoading(false);
+      throw new Error(error.message || "Failed to update avatar");
     }
   };
 
