@@ -54,8 +54,6 @@ export default function FacilitiesPage() {
       email: "",
     },
     location: {
-      type: "Point", 
-      coordinates: [0, 0],
       address: {
         formatted_address: "",
         city: "",
@@ -111,27 +109,7 @@ export default function FacilitiesPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-    if (!token) {
-      toast({
-        title: "Error",
-        description: "Please login to create or edit facilities",
-        variant: "destructive",
-      });
-      return;
-    }
-  
     try {
-      const longitude = Number(formData.location.coordinates[0]);
-      const latitude = Number(formData.location.coordinates[1]);
-  
-      if (isNaN(longitude) || isNaN(latitude)) {
-        toast({
-          title: "Error",
-          description: "Invalid coordinates",
-          variant: "destructive",
-        });
-        return;
-      }
       const requestBody = {
         name: formData.name,
         category: "facility",
@@ -141,8 +119,6 @@ export default function FacilitiesPage() {
           email: formData.contact.email || undefined,
         },
         location: {
-          type: "Point",
-          coordinates: [longitude, latitude],
           address: {
             formatted_address: formData.location.address.formatted_address,
             city: formData.location.address.city,
@@ -151,13 +127,12 @@ export default function FacilitiesPage() {
             details: formData.location.address.details || "",
           },
         },
-        availabilityStatus: formData.availability_status,
-        operatingHours: formData.operating_hours, 
+        availability_status: formData.availability_status,
+        operating_hours: formData.operating_hours,
         tags: formData.tags.filter(Boolean),
         metadata: {},
       };
   
-      // Add capacity for shelters
       if (formData.type === "shelter") {
         requestBody.capacity = Number(formData.capacity);
         requestBody.metadata.capacity = Number(formData.capacity);
@@ -170,8 +145,7 @@ export default function FacilitiesPage() {
           description: "Facility updated successfully",
         });
       } else {
-        const response = await resourceApi.protected.createResource(requestBody);
-        console.log("Created resource:", response); 
+        await resourceApi.protected.createResource(requestBody);
         toast({
           title: "Success",
           description: "Facility created successfully",
@@ -211,7 +185,37 @@ export default function FacilitiesPage() {
 
   const handleEdit = (facility) => {
     setEditingFacility(facility);
-    setFormData(facility);
+    setFormData({
+      name: facility.name || "",
+      category: "facility",
+      type: facility.type || "",
+      contact: {
+        phone: facility.contact?.phone || "",
+        email: facility.contact?.email || "",
+      },
+      location: {
+        address: {
+          formatted_address: facility.location?.address?.formatted_address || "",
+          city: facility.location?.address?.city || "",
+          district: facility.location?.address?.district || "",
+          province: facility.location?.address?.province || "",
+          details: facility.location?.address?.details || "",
+        },
+      },
+      availability_status: facility.availability_status || "open",
+      metadata: facility.metadata || {},
+      operating_hours: facility.operating_hours || {
+        monday: { open: "09:00", close: "17:00", is24Hours: false },
+        tuesday: { open: "09:00", close: "17:00", is24Hours: false },
+        wednesday: { open: "09:00", close: "17:00", is24Hours: false },
+        thursday: { open: "09:00", close: "17:00", is24Hours: false },
+        friday: { open: "09:00", close: "17:00", is24Hours: false },
+        saturday: { open: "09:00", close: "17:00", is24Hours: false },
+        sunday: { open: "09:00", close: "17:00", is24Hours: false },
+      },
+      capacity: facility.metadata?.capacity || 0,
+      tags: facility.tags || [],
+    });
     setIsDialogOpen(true);
   };
 
@@ -225,8 +229,6 @@ export default function FacilitiesPage() {
         email: "",
       },
       location: {
-        type: "point",
-        coordinates: [0, 0],
         address: {
           formatted_address: "",
           city: "",
@@ -236,9 +238,7 @@ export default function FacilitiesPage() {
         },
       },
       availability_status: "open",
-      metadata: {
-        capacity: 0,
-      },
+      metadata: {},
       operating_hours: {
         monday: { open: "09:00", close: "17:00", is24Hours: false },
         tuesday: { open: "09:00", close: "17:00", is24Hours: false },
@@ -248,8 +248,8 @@ export default function FacilitiesPage() {
         saturday: { open: "09:00", close: "17:00", is24Hours: false },
         sunday: { open: "09:00", close: "17:00", is24Hours: false },
       },
+      capacity: 0,
       tags: [],
-      status: "active",
     });
     setEditingFacility(null);
   };
@@ -337,50 +337,6 @@ export default function FacilitiesPage() {
 
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Location</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      type="number"
-                      step="any"
-                      min="-180"
-                      max="180"
-                      placeholder="Longitude"
-                      value={formData.location.coordinates[0]}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          location: {
-                            ...formData.location,
-                            coordinates: [
-                              e.target.value,
-                              formData.location.coordinates[1],
-                            ],
-                          },
-                        })
-                      }
-                      required
-                    />
-                    <Input
-                      type="number"
-                      step="any"
-                      min="-90"
-                      max="90"
-                      placeholder="Latitude"
-                      value={formData.location.coordinates[1]}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          location: {
-                            ...formData.location,
-                            coordinates: [
-                              formData.location.coordinates[0],
-                              e.target.value,
-                            ],
-                          },
-                        })
-                      }
-                      required
-                    />
-                  </div>
                   <Input
                     placeholder="Full Address"
                     value={formData.location.address.formatted_address}
