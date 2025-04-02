@@ -26,19 +26,27 @@ export const UserProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("token");
       const storedUser = localStorage.getItem("user");
-
+  
       if (!token || !storedUser) {
         setUser(null);
         setIsLoggedIn(false);
         return;
       }
-
-      const userData = JSON.parse(storedUser);
+  
+      let userData;
+      try {
+        userData = JSON.parse(storedUser);
+      } catch (e) {
+        console.error("Failed to parse stored user data:", e);
+        handleLogout();
+        return;
+      }
+  
       if (isTokenExpired(token)) {
         handleLogout();
         return;
       }
-
+  
       setUser(userData);
       setIsLoggedIn(true);
     } catch (error) {

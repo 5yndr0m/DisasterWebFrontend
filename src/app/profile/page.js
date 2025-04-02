@@ -48,22 +48,27 @@ const API_BASE_URL =
 
 const getUserProfile = async (userId) => {
   try {
-    
     const response = await fetch(`${API_BASE_URL}/users/me`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem("token")}`,
       },
     });
 
-    const data = await response.json();
-
+    // First check if response is ok
     if (!response.ok) {
-      throw new Error(data.message || data.error || `HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
     }
+
+    // Then try to parse the response
+    const data = await response.json();
     return data;
+    
   } catch (error) {
     console.error("getUserProfile error:", error);
-    throw new Error(error.message || "Failed to fetch user profile");
+    throw error;
   }
 };
 
@@ -131,24 +136,14 @@ export default function Profile() {
     const fetchUserProfile = async () => {
       try {
         const token = localStorage.getItem("token");
-        
         if (!token) {
           router.push("/auth");
           return;
         }
-
-        const storedUser = localStorage.getItem("user");
-        
-        if (!storedUser) {
-          router.push("/auth");
-          return;
-        }
-
-        const parsedUser = JSON.parse(storedUser);
-        
-        const userData = await getUserProfile(parsedUser.id);
-
-        if (userData.success) {
+  
+        const userData = await getUserProfile();
+  
+        if (userData && userData.user) {
           const transformedUser = {
             ...userData.user,
             organization: userData.user.associated_department || "Not specified",
@@ -170,13 +165,13 @@ export default function Profile() {
           };
           setUser(transformedUser);
         } else {
-          throw new Error(userData.message || "Failed to fetch user profile");
+          throw new Error("Invalid user data received");
         }
       } catch (error) {
         console.error("Profile fetch error:", error);
         toast({
           title: "Error",
-          description: error.message,
+          description: error.message || "Failed to fetch profile",
           variant: "destructive",
         });
         router.push("/auth");
@@ -184,7 +179,7 @@ export default function Profile() {
         setLoading(false);
       }
     };
-
+  
     fetchUserProfile();
   }, [toast, router]);
 
