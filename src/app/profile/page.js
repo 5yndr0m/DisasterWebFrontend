@@ -74,7 +74,7 @@ const getUserProfile = async (userId) => {
 
 const updateUser = async (userId, userData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -92,7 +92,7 @@ const updateUser = async (userId, userData) => {
 
 const deleteUser = async (userId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -108,7 +108,7 @@ const deleteUser = async (userId) => {
 
 const updateUserPreferences = async (preferences) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/preferences`, {
+    const response = await fetch(`${API_BASE_URL}/users/me/preferences`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
