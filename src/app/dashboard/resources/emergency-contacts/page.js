@@ -48,7 +48,7 @@ export default function EmergencyContactsPage() {
       phone: "",
       email: "",
     },
-    emergencyLevel: "medium", // Match the backend field name
+    emergency_level: "medium",
     metadata: {
       serviceHours: "24/7",
     },
@@ -140,20 +140,19 @@ export default function EmergencyContactsPage() {
 
     if (!validateForm()) return;
 
-    // Match exactly with the backend createResource controller requirements
     const submitData = {
-      name: formData.name,
+      name: formData.name.trim(),
       category: "emergency_contact",
       type: "emergency_number",
       contact: {
         phone: formData.contact.phone.trim(),
-        email: formData.contact.email.trim() || undefined, // Only include if not empty
+        email: formData.contact.email.trim() || undefined,
       },
-      emergencyLevel: formData.emergency_level, // Match the controller's expected field name
+      emergency_level: formData.emergency_level, // Make sure this matches
       metadata: {
         serviceHours: formData.metadata.serviceHours,
       },
-      tags: formData.tags.filter((tag) => tag.trim()), // Filter out empty tags
+      tags: formData.tags.filter((tag) => tag.trim()),
       status: "active",
     };
 
@@ -164,28 +163,23 @@ export default function EmergencyContactsPage() {
           editingContact.id,
           submitData,
         );
-        toast({
-          title: "Success",
-          description: "Emergency contact updated successfully",
-        });
       } else {
-        const response = await resourceApi.protected.createResource(submitData);
-        toast({
-          title: "Success",
-          description: "Emergency contact created successfully",
-        });
+        await resourceApi.protected.createResource(submitData);
       }
 
       setIsDialogOpen(false);
       resetForm();
       await fetchContacts();
+      toast({
+        title: "Success",
+        description: editingContact
+          ? "Emergency contact updated successfully"
+          : "Emergency contact created successfully",
+      });
     } catch (error) {
       console.error("Error submitting form:", error);
-      // More detailed error handling
       const errorMessage =
-        error.response?.data?.error ||
-        error.response?.data?.message ||
-        "Failed to save contact";
+        error.response?.data?.message || "Failed to save contact";
       toast({
         title: "Error",
         description: errorMessage,
@@ -246,7 +240,7 @@ export default function EmergencyContactsPage() {
         phone: "",
         email: "",
       },
-      emergencyLevel: "medium",
+      emergency_level: "medium",
       metadata: {
         serviceHours: "24/7",
       },
@@ -328,9 +322,9 @@ export default function EmergencyContactsPage() {
               </div>
 
               <Select
-                value={formData.emergencyLevel}
+                value={formData.emergency_level}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, emergencyLevel: value })
+                  setFormData({ ...formData, emergency_level: value })
                 }
                 required
               >
