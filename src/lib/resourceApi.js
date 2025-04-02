@@ -3,7 +3,7 @@ import { publicClient, protectedClient } from "./api";
 export const resourceApi = {
   public: {
     getFacilities: async (params) => {
-      const response = await publicClient.get("/resource/facilities", {
+      const response = await publicClient.get("/resources/facilities", {
         params,
       });
       return response.data;
@@ -11,7 +11,7 @@ export const resourceApi = {
 
     getGuides: async (params) => {
         try {
-          const response = await publicClient.get("/resource/guides", { params });
+          const response = await publicClient.get("/resources/guides", { params });
           return response.data;
         } catch (error) {
           throw new Error(error.response?.data?.message || "Failed to fetch guides");
@@ -19,14 +19,14 @@ export const resourceApi = {
       },
 
     getEmergencyContacts: async (params) => {
-      const response = await publicClient.get("/resource/emergency-contacts", {
+      const response = await publicClient.get("/resources/emergency-contacts", {
         params,
       });
       return response.data;
     },
 
     getNearbyFacilities: async (params) => {
-      const response = await publicClient.get("/resource/facilities/nearby", {
+      const response = await publicClient.get("/resources/facilities/nearby", {
         params,
       });
       return response.data;
@@ -34,42 +34,42 @@ export const resourceApi = {
 
     getResourceById: async (id) => {
         try {
-          const response = await publicClient.get(`/resource/${id}`);
+          const response = await publicClient.get(`/resources/${id}`);
           return response.data.resource || response.data;
         } catch (error) {
-          throw new Error(error.response?.data?.message || "Failed to fetch resource");
+          throw new Error(error.response?.data?.message || "Failed to fetch resources");
         }
       },
   },
 
   protected: {
     getAllResources: async () => {
-      const response = await protectedClient.get("/resource");
+      const response = await protectedClient.get("/resources");
       return response.data;
     },
 
     getLastMonthVerifiedResources: async () => {
       const response = await protectedClient.get(
-        "/resource/verified/last-month",
+        "/resources/verified/last-month",
       );
       return response.data;
     },
 
     createResource: async (resourceData) => {
-      const response = await protectedClient.post("/resource", resourceData);
+      const response = await protectedClient.post("/resources", resourceData);
       return response.data;
     },
 
     updateResource: async (id, updateData) => {
       const response = await protectedClient.put(
-        `/resource/${id}`,
+        `/resources/${id}`,
         updateData,
       );
       return response.data;
     },
 
     deleteResource: async (id) => {
-      const response = await protectedClient.delete(`/resource/${id}`);
+      const response = await protectedClient.delete(`/resources/${id}`);
       return response.data;
     },
   },
