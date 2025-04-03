@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { ChangePassword } from "@/components/common/ChangePassword";
+import { userApi } from "@/lib/userApi";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL;
